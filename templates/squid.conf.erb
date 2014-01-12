@@ -1,0 +1,145 @@
+#
+# PUPPET MANAGED FILE: DO NOT EDIT
+# Or do, I'm a comment not your mom.
+# squid.conf.erb 11Jan2014
+#
+
+#
+# Admin details
+#
+cache_mgr <%= squid_admin_email -%>
+
+#
+# Squid ACL definitions
+#
+acl manager proto cache_object
+
+# Networks
+acl localhost src 127.0.0.1/32 ::1
+acl to_localhost dst 127.0.0.0/8 0.0.0.0/32 ::1
+
+<% squid_allowednets.sort.each do |net| -%>
+acl allowednet src <%= net %>
+<% end -%>
+
+<% squid_bannednets.sort.each do |net| -%>
+acl bannednet src <%= net %>
+<% end -%>
+
+# Ports
+acl SSL_ports port 443
+acl Safe_ports port 80          # http
+acl CONNECT method CONNECT
+
+
+#
+# Access Controls
+#
+
+# Only allow cachemgr access from localhost
+http_access allow manager localhost
+http_access deny manager
+
+# Deny requests to certain unsafe ports
+http_access deny !Safe_ports
+
+# Deny CONNECT to other than secure SSL ports
+http_access deny CONNECT !SSL_ports
+
+# Deny proxy requests to localhost
+http_access deny to_localhost
+
+http_access allow localhost
+http_access deny bannednet
+http_access allow allowednet
+
+# And finally deny all other access to this proxy
+http_access deny all
+htcp_access deny all
+htcp_clr_access deny all
+
+# NETWORK OPTIONS
+# -----------------------------------------------------------------------------
+http_port 8080 transparent
+
+# MEMORY CACHE OPTIONS
+# -----------------------------------------------------------------------------
+<% if not @squid_cache.nil? -%>
+# This variable should have a size suffix
+cache_mem <%= squid_cache["mem_size"] -%>
+# This variable should have a size suffix
+maximum_object_size_in_memory cache_mem <%= squid_memcache["mem_max_obj"] -%>
+
+<%    if @squid_cache.has_key? "disk" -%>
+#       cache_dir ufs Directory-Name Mbytes L1 L2 [options]
+#
+#       'Mbytes' is the amount of disk space (MB) to use under this
+#       directory.  The default is 100 MB.  Change this to suit your
+#       configuration.  Do NOT put the size of your disk drive here.
+#       Instead, if you want Squid to use the entire disk drive,
+#       subtract 20% and use that value.
+#
+#       'Level-1' is the number of first-level subdirectories which
+#       will be created under the 'Directory'.  The default is 16.
+#
+#       'Level-2' is the number of second-level subdirectories which
+#       will be created under each first-level directory.  The default
+#       is 256.
+#
+#       The aufs store type:
+#
+#       "aufs" uses the same storage format as "ufs", utilizing
+#       POSIX-threads to avoid blocking the main Squid process on
+#       disk-I/O. This was formerly known in Squid as async-io.
+#
+#       cache_dir aufs Directory-Name Mbytes L1 L2 [options]
+#
+#       see argument descriptions under ufs above
+cache_dir aufs <%= squid_memcache["disk"]["path"] -%> <%= squid_memcache["disk"]["size"] -%> <%= squid_memcache["disk"]["L1"] -%> <%= squid_memcache["disk"]["L2"] -%>
+# This variable should have a size suffix
+maximum_object_size  <%= squid_memcache["disk"]["max_obj"] -%>
+
+#  TAG: cache_swap_low  (percent, 0-100)
+#  TAG: cache_swap_high (percent, 0-100)
+#
+#       The low- and high-water marks for cache object replacement.
+#       Replacement begins when the swap (disk) usage is above the
+#       low-water mark and attempts to maintain utilization near the
+#       low-water mark.  As swap utilization gets close to high-water
+#       mark object eviction becomes more aggressive.  If utilization is
+#       close to the low-water mark less replacement is done each time.
+#
+#       Defaults are 90% and 95%. If you have a large cache, 5% could be
+#       hundreds of MB. If this is the case you may wish to set these
+#       numbers closer together.
+cache_swap_low <%= squid_memcache["disk"]["cache_swap"]["low"] -%>
+cache_swap_high  <%= squid_memcache["disk"]["cache_swap"]["high"] -%>
+<%    else -%>
+# DISK CACHE DISABLED: squid_cache["disk"] Puppet variable not set
+<%    end -%>
+
+<% else -%>
+# CACHE DISABLED: squid_cache Puppet variable not set
+<% end -%>
+
+coredump_dir /var/spool/squid3
+
+refresh_pattern ^ftp:           1440    20%     10080
+refresh_pattern ^gopher:        1440    0%      1440
+refresh_pattern -i (/cgi-bin/|\?) 0     0%      0
+refresh_pattern .               0       20%     4320
+
+read_ahead_gap 256 KB
+
+httpd_suppress_version_string on
+
+snmp_port 0
+
+check_hostnames on
+allow_underscore off
+
+<% if squid_disable_forwarded_for == true -%>
+forwarded_for delete
+<% end -%>
+
+logformat squid %tl %6tr %>a %Ss/%03>Hs %<st %rm %ru %un %Sh/%<A %mt
