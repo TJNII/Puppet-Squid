@@ -7,7 +7,7 @@
 #
 # Admin details
 #
-cache_mgr <%= squid_admin_email -%>
+cache_mgr <%= squid_admin_email %>
 
 #
 # Squid ACL definitions
@@ -66,9 +66,9 @@ http_port 8080 transparent
 # -----------------------------------------------------------------------------
 <% if not @squid_cache.nil? -%>
 # This variable should have a size suffix
-cache_mem <%= squid_cache["mem_size"] -%>
+cache_mem <%= squid_cache["mem_size"] %>
 # This variable should have a size suffix
-maximum_object_size_in_memory cache_mem <%= squid_cache["mem_max_obj"] -%>
+maximum_object_size_in_memory cache_mem <%= squid_cache["mem_max_obj"] %>
 
 <%    if @squid_cache.has_key? "disk" -%>
 #       cache_dir ufs Directory-Name Mbytes L1 L2 [options]
@@ -95,9 +95,9 @@ maximum_object_size_in_memory cache_mem <%= squid_cache["mem_max_obj"] -%>
 #       cache_dir aufs Directory-Name Mbytes L1 L2 [options]
 #
 #       see argument descriptions under ufs above
-cache_dir aufs <%= squid_cache["disk"]["path"] -%> <%= squid_cache["disk"]["size"] -%> <%= squid_cache["disk"]["L1"] -%> <%= squid_cache["disk"]["L2"] -%>
+cache_dir aufs <%= squid_cache["disk"]["path"] -%> <%= squid_cache["disk"]["size"] -%> <%= squid_cache["disk"]["L1"] -%> <%= squid_cache["disk"]["L2"] %>
 # This variable should have a size suffix
-maximum_object_size  <%= squid_cache["disk"]["max_obj"] -%>
+maximum_object_size  <%= squid_cache["disk"]["max_obj"] %>
 
 #  TAG: cache_swap_low  (percent, 0-100)
 #  TAG: cache_swap_high (percent, 0-100)
@@ -112,8 +112,8 @@ maximum_object_size  <%= squid_cache["disk"]["max_obj"] -%>
 #       Defaults are 90% and 95%. If you have a large cache, 5% could be
 #       hundreds of MB. If this is the case you may wish to set these
 #       numbers closer together.
-cache_swap_low <%= squid_cache["disk"]["cache_swap"]["low"] -%>
-cache_swap_high  <%= squid_cache["disk"]["cache_swap"]["high"] -%>
+cache_swap_low <%= squid_cache["disk"]["cache_swap"]["low"] %>
+cache_swap_high  <%= squid_cache["disk"]["cache_swap"]["high"] %>
 <%    else -%>
 # DISK CACHE DISABLED: squid_cache["disk"] Puppet variable not set
 <%    end -%>
