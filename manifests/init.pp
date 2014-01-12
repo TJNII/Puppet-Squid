@@ -35,7 +35,7 @@ class squid (
   }
   
     
-  service { 'squid':
+  service { 'squid3':
     ensure    => running,
     enable    => true,
     subscribe => File['squid.conf'],
