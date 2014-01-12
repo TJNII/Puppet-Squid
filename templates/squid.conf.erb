@@ -68,7 +68,7 @@ http_port 8080 transparent
 # This variable should have a size suffix
 cache_mem <%= squid_cache["mem_size"] %>
 # This variable should have a size suffix
-maximum_object_size_in_memory cache_mem <%= squid_cache["mem_max_obj"] %>
+maximum_object_size_in_memory <%= squid_cache["mem_max_obj"] %>
 
 <%    if @squid_cache.has_key? "disk" -%>
 #       cache_dir ufs Directory-Name Mbytes L1 L2 [options]
